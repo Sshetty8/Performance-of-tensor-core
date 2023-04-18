@@ -197,9 +197,9 @@ __host__ void init_host_matrices(half *a, half *b, float *c) {
 __global__ void compute_gemm(const half *A, const half *B, const float *C,
                              float *D, float alpha, float beta, long int *time) {
 
-	long int start = 0; //clock();
+	long int start = clock();
 	long int stop  = 0;
-	asm volatile("mov.u64 %0, %%globaltimer;" : "=l"(start));
+	//asm volatile("mov.u64 %0, %%globaltimer;" : "=l"(start));
   extern __shared__ half shmem[][CHUNK_K * K + SKEW_HALF];
 
   // Warp and lane identification.
@@ -398,8 +398,8 @@ __global__ void compute_gemm(const half *A, const half *B, const float *C,
     }
 
     __syncthreads();
-    //stop  = clock();
-    asm volatile("mov.u64 %0, %%globaltimer;" : "=l"(stop));
+    stop  = clock();
+    //asm volatile("mov.u64 %0, %%globaltimer;" : "=l"(stop));
   }
   time[blockIdx.x*blockDim.x + threadIdx.x] = stop-start;
 }
@@ -606,7 +606,7 @@ int main(int argc, char **argv) {
                                cudaMemcpyDeviceToHost));
 #endif
      printf("clock rate: %ld\n", deviceProp.clockRate);
-     printf("Time using clock():%ldns\n",h_time[0]);// / deviceProp.clockRate);
+     printf("Time using clock():%ld seconds\n",h_time[0] / deviceProp.clockRate);
   } else {
     dim3 gridDim;
     dim3 blockDim;
